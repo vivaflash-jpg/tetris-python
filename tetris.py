@@ -31,6 +31,7 @@ SHAPES = [
 
 SCORE_TABLE = [0, 100, 300, 500, 800]
 BASE_SPEED  = 800
+MAX_LIVES   = 3
 
 
 def rotate(shape):
@@ -72,6 +73,7 @@ class Tetris:
         self.score_lbl = panel(side, 'SCORE')
         self.level_lbl = panel(side, 'LEVEL')
         self.lines_lbl = panel(side, 'LINES')
+        self.lives_lbl = panel(side, 'LIVES')
 
         # next piece preview
         nf = tk.Frame(side, bg='#16213e', highlightthickness=1,
@@ -134,6 +136,7 @@ class Tetris:
         self.score  = 0
         self.level  = 1
         self.lines  = 0
+        self.lives  = MAX_LIVES
         self.paused = False
         self.running = True
         self.speed  = BASE_SPEED
@@ -225,7 +228,7 @@ class Tetris:
         self.next  = self._new_piece()
         self._draw_next()
         if self._collides(self.piece['shape'], self.piece['x'], self.piece['y']):
-            self._game_over()
+            self._lose_life()
 
     def _clear_lines(self):
         cleared = 0
@@ -244,13 +247,41 @@ class Tetris:
             self.speed  = max(80, BASE_SPEED - (self.level - 1) * 80)
             self._update_ui()
 
+    def _lose_life(self):
+        self.lives -= 1
+        self._update_ui()
+        if self.lives <= 0:
+            self._game_over()
+            return
+        # 목숨이 남아 있으면 보드만 초기화하고 재개
+        self.running = False
+        if self._after_id:
+            self.root.after_cancel(self._after_id)
+        self.ov_title.config(text=f'목숨 -1 !  남은 목숨: {self.lives}')
+        self.ov_body.config(text=f'현재 점수: {self.score}')
+        self.ov_btn.config(text='계속하기', command=self._resume_after_life_lost)
+        self.overlay.place(relx=0.5, rely=0.5, anchor='center')
+
+    def _resume_after_life_lost(self):
+        self.overlay.place_forget()
+        self.root.focus_set()
+        self.board  = [[0]*COLS for _ in range(ROWS)]
+        self.speed  = max(80, BASE_SPEED - (self.level - 1) * 80)
+        self.paused = False
+        self.running = True
+        self.piece  = self._new_piece()
+        self.next   = self._new_piece()
+        self._draw_next()
+        self.ov_btn.config(command=self.start)
+        self._tick()
+
     def _game_over(self):
         self.running = False
         if self._after_id:
             self.root.after_cancel(self._after_id)
         self.ov_title.config(text='GAME OVER')
         self.ov_body.config(text=f'최종 점수:  {self.score}')
-        self.ov_btn.config(text='다시 시작')
+        self.ov_btn.config(text='다시 시작', command=self.start)
         self.overlay.place(relx=0.5, rely=0.5, anchor='center')
 
     # ── tick ─────────────────────────────────────────────────────────
@@ -348,6 +379,7 @@ class Tetris:
         self.score_lbl.config(text=str(self.score))
         self.level_lbl.config(text=str(self.level))
         self.lines_lbl.config(text=str(self.lines))
+        self.lives_lbl.config(text='♥ ' * self.lives if self.lives > 0 else '×')
 
 
 if __name__ == '__main__':
