@@ -248,7 +248,7 @@ class Tetris:
             self._update_ui()
 
     def _lose_life(self):
-        self.lives -= 1
+        self.lives = max(0, self.lives - 1)
         self._update_ui()
         if self.lives <= 0:
             self._game_over()
@@ -263,6 +263,8 @@ class Tetris:
         self.overlay.place(relx=0.5, rely=0.5, anchor='center')
 
     def _resume_after_life_lost(self):
+        if self.running:
+            return
         self.overlay.place_forget()
         self.root.focus_set()
         self.board  = [[0]*COLS for _ in range(ROWS)]
