@@ -2,7 +2,7 @@ import tkinter as tk
 import random
 
 COLS, ROWS = 10, 20
-BLOCK = 32
+BLOCK = 32  # 블록 한 칸의 픽셀 크기
 WIDTH  = COLS * BLOCK
 HEIGHT = ROWS * BLOCK
 SIDE_W = 160
