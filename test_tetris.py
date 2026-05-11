@@ -7,14 +7,14 @@
 """
 
 import sys
-import os
+from pathlib import Path
 from unittest.mock import MagicMock
 import unittest
 
 # tkinter 는 디스플레이가 없는 환경에서 import 자체가 실패하므로 먼저 mock
 sys.modules['tkinter'] = MagicMock()
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, str(Path(__file__).parent))
 import tetris  # noqa: E402  (tkinter mock 이후에 import 해야 함)
 
 COLS      = tetris.COLS
